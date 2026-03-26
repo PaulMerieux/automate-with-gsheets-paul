@@ -126,6 +126,7 @@ def main() -> None:
 
     # Extract
     df = read_worksheet(sheet_id, worksheet, sa_json)
+    print(df.head(4))
 
     # Load
     engine = get_engine(build_pg_url(pg_user, pg_password, pg_host, pg_port, pg_db))
