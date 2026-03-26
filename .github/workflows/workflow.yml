@@ -1,50 +1,56 @@
-name: Daily Product ETL to RDS
+name: Run ETL workflow
 
 on:
-  schedule:
-    # 06:00 UTC on the 1st of Jan, Apr, Jul, Oct (once per quarter)
-    - cron: "0 6 1 1,4,7,10 *"
+  # ──────────────────────────────────────────────────────────────
+  # Manual trigger (from the "Actions" tab in GitHub)
+  # ──────────────────────────────────────────────────────────────
   workflow_dispatch:
+
+  # ──────────────────────────────────────────────────────────────
+  # Scheduled trigger (disabled for now)
+  #
+  # Uncomment the following lines if you want your ETL
+  # to run automatically once per day at 03:00 UTC.
+  #
+  # schedule:
+  #   - cron: "0 3 * * *"
+  #
+  # Note:
+  #   - GitHub Actions uses UTC timezone for cron jobs.
+  #   - Adjust the time if needed (e.g., "0 2 * * *" = 3 AM CET).
+  # ──────────────────────────────────────────────────────────────
+
 
 jobs:
   etl:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # This action clones the content of the current repo into the remote runner
+        uses: actions/checkout@v4
 
-      - name: Debug commit
-        run: |
-          echo "=== COMMIT ==="
-          git log -1
-          echo "=== REQUIREMENTS ==="
-          cat requirements.txt
-          
-      - name: Setup Python
-        uses: actions/setup-python@v5 # This action installs python (version below)
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11" 
+          python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-
-      - name: Verify install
-        run: python -m pip list
-
-      - name: Test SQLAlchemy
-        run: python -c "import sqlalchemy; print('SQLAlchemy OK')"
+        run: pip install -r requirements.txt
 
       - name: Run ETL
         env:
-          DB_DB: ${{ secrets.DB_DB }} # That is an env variable that you will set in your repo
-          DB_HOST: ${{ secrets.DB_HOST }} # That is an env variable that you will set in your repo
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # That is an env variable that you will set in your repo
-          DB_PORT: ${{ secrets.DB_PORT }} # That is an env variable that you will set in your repo
-          DB_TABLE: ${{ secrets.DB_TABLE }} # That is an env variable that you will set in your repo
-          DB_USER: ${{ secrets.DB_USER }} # That is an env variable that you will set in your repo
-          GOOGLE_SA_KEY_JSON: ${{ secrets.GOOGLE_SA_KEY_JSON }} # That is an env variable that you will set in your repo
-          SHEET_ID: ${{ secrets.SHEET_ID }} # That is an env variable that you will set in your repo
-          WORKSHEET: ${{ secrets.WORKSHEET }} # That is an env variable that you will set in your repo
-        run: python etl.py
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          WORKSHEET: ${{ secrets.WORKSHEET }}
+          GOOGLE_SA_KEY_JSON: ${{ secrets.GOOGLE_SA_KEY_JSON }}
+          PG_USER: ${{ secrets.PG_USER }}
+          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          PG_HOST: ${{ secrets.PG_HOST }}
+          PG_PORT: ${{ secrets.PG_PORT }}
+          PG_DB: ${{ secrets.PG_DB }}
+          PG_TABLE: ${{ secrets.PG_TABLE }}
+          PG_IF_EXISTS: ${{ secrets.PG_IF_EXISTS }}
+          PG_CHUNKSIZE: ${{ secrets.PG_CHUNKSIZE }}
+        run: |
+          echo "🚀 Launching ETL pipeline..."
+          python etl.py
+          echo "✅ ETL finished successfully!"
