@@ -1,0 +1,35 @@
+name: Daily Product ETL to RDS
+
+on:
+  schedule:
+    # 06:00 UTC on the 1st of Jan, Apr, Jul, Oct (once per quarter)
+    - cron: "0 6 1 1,4,7,10 *"
+  workflow_dispatch:
+
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # This action clones the content of the current repo into the remote runner
+
+      - name: Setup Python
+        uses: actions/setup-python@v5 # This action installs python (version below)
+        with:
+          python-version: "3.11" 
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt # It installs all the necessary dependencies from requirements.txt
+
+      - name: Run ETL
+        env:
+          DB_DB: ${{ secrets.DB_DB }} # That is an env variable that you will set in your repo
+          DB_HOST: ${{ secrets.DB_HOST }} # That is an env variable that you will set in your repo
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # That is an env variable that you will set in your repo
+          DB_PORT: ${{ secrets.DB_PORT }} # That is an env variable that you will set in your repo
+          DB_TABLE: ${{ secrets.DB_TABLE }} # That is an env variable that you will set in your repo
+          DB_USER: ${{ secrets.DB_USER }} # That is an env variable that you will set in your repo
+          GOOGLE_SA_KEY_JSON: ${{ secrets.GOOGLE_SA_KEY_JSON }} # That is an env variable that you will set in your repo
+          SHEET_ID: ${{ secrets.SHEET_ID }} # That is an env variable that you will set in your repo
+          WORKSHEET: ${{ secrets.WORKSHEET }} # That is an env variable that you will set in your repo
+        run: python etl.py
