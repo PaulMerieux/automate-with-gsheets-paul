@@ -10,16 +10,16 @@ jobs:
   etl:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # This action clones the content of the current repo into the remote runner
+
       - name: Debug commit
         run: |
           echo "=== COMMIT ==="
           git log -1
           echo "=== REQUIREMENTS ==="
           cat requirements.txt
-
-      - name: Checkout repository
-        uses: actions/checkout@v4 # This action clones the content of the current repo into the remote runner
-
+          
       - name: Setup Python
         uses: actions/setup-python@v5 # This action installs python (version below)
         with:
